@@ -11,7 +11,7 @@ jobs:
           steps:
             - run: yarn
             - run: yarn test:unit
-            - run: yarn test:intergation
+            - run: yarn test:integration
 workflows:
     build-and-test:
       jobs:
