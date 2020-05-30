@@ -13,6 +13,11 @@ jobs:
     executor: node-lts
     steps:
       - checkout
+      - save_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/project
+
       - run: node --version
       - run: npm --version
       - node/install-packages
@@ -20,14 +25,18 @@ jobs:
   test-unit:
     executor: node-lts
     steps:
-      - checkout
+      - restore_cache:
+          keys:
+            - repo-{{ .Environment.CIRCLE_SHA1 }}
       - node/install-packages
       - run: npm run test:unit
 
   test-integration:
     executor: node-lts
     steps:
-      - checkout
+      - restore_cache:
+          keys:
+            - repo-{{ .Environment.CIRCLE_SHA1 }}
       - node/install-packages
       - run: npm run test:unit
 
