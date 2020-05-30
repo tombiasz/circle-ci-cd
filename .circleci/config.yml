@@ -1,18 +1,76 @@
 version: 2.1
+
 orbs:
-  node: circleci/node@1.1.6
+  node: circleci/node@2.1.1
+
+executors:
+  node-lts:
+    docker:
+      - image: cimg/node:lts
+
+commands:
+  cache-repo:
+    steps:
+      - save_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/project
+  restore-repo:
+    steps:
+      - restore_cache:
+          keys:
+            - repo-{{ .Environment.CIRCLE_SHA1 }}
+
+  dump-versions:
+    steps:
+      - run:
+          name: Dump versions
+          command: |
+            node --version
+            npm --version
+
 jobs:
-  build-and-test:
-    executor:
-      name: node/default
+  build:
+    executor: node-lts
     steps:
       - checkout
-      - node/with-cache:
-          steps:
-            - run: yarn
-            - run: yarn test:unit
-            - run: yarn test:integration
+      - cache-repo
+      - dump-versions
+      - node/install-packages
+
+  test-unit:
+    executor: node-lts
+    steps:
+      - restore-repo
+      - node/install-packages
+      - run: npm run test:unit
+
+  test-integration:
+    executor: node-lts
+    steps:
+      - restore-repo
+      - node/install-packages
+      - run: npm run test:integration
+
+  deploy:
+    executor: node-lts
+    steps:
+      - run: echo deploying
+
 workflows:
-    build-and-test:
-      jobs:
-        - build-and-test
+  build:
+    jobs:
+      - build
+      - test-unit:
+          requires:
+            - build
+      - test-integration:
+          requires:
+            - build
+      - deploy:
+          requires:
+            - test-unit
+            - test-integration
+          filters:
+            branches:
+              only: master
