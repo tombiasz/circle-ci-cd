@@ -21,14 +21,21 @@ commands:
           keys:
             - repo-{{ .Environment.CIRCLE_SHA1 }}
 
+  dump-versions:
+    steps:
+      - run:
+          name: Dump versions
+          command: |
+            node --version
+            npm --version
+
 jobs:
   build:
     executor: node-lts
     steps:
       - checkout
       - cache-repo
-      - run: node --version
-      - run: npm --version
+      - dump-versions
       - node/install-packages
 
   test-unit:
