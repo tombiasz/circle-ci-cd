@@ -43,7 +43,7 @@ jobs:
     steps:
       - restore-repo
       - node/install-packages
-      - run: npm run test:unit
+      - run: npm run test:integration
 
 workflows:
   build:
