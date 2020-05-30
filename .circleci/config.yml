@@ -15,7 +15,7 @@ jobs:
       - checkout
       - run: node --version
       - run: npm --version
-      - node/install
+      - node/install-packages
       - run: npm run test:unit
       - run: npm run test:integration
 
