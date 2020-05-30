@@ -1,15 +1,23 @@
 version: 2.1
+
 orbs:
   node: circleci/node@2.1.1
+
+executors:
+  node-lts:
+    docker:
+      - image: cimg/node:lts
+
 jobs:
   build-and-test:
-    executor:
-      name: node/default
+    executor: node-lts
     steps:
       - checkout
+      - run: node --version
       - run: npm ci
       - run: npm run test:unit
       - run: npm run test:integration
+
 workflows:
     build-and-test:
       jobs:
