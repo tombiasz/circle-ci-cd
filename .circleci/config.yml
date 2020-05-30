@@ -7,11 +7,10 @@ jobs:
       name: node/default
     steps:
       - checkout
-      - node/with-cache:
-          steps:
-            - run: yarn
-            - run: yarn test:unit
-            - run: yarn test:integration
+      - steps:
+        - run: yarn
+        - run: yarn test:unit
+        - run: yarn test:integration
 workflows:
     build-and-test:
       jobs:
