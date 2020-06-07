@@ -92,8 +92,15 @@ jobs:
           repo-name: "circle-ci-cd-staging"
           image-tag: "$CIRCLE_SHA1"
 
+  deploy-production:
+    executor: ecr
+    steps:
+      - build-and-push-to-ecr:
+          repo-name: "circle-ci-cd-production"
+          image-tag: "$CIRCLE_TAG"
+
 workflows:
-  build:
+  build-and-deploy:
     jobs:
       - build
       - test-unit:
@@ -102,14 +109,24 @@ workflows:
       - test-integration:
           requires:
             - build
-      - deploy:
+      - deploy-staging:
           requires:
             - test-unit
             - test-integration
           filters:
             branches:
               only: master
-      - deploy-staging:
+      - wait-for-approval:
+          type: approval
           requires:
             - test-unit
             - test-integration
+          filters:
+            tags:
+              only: /^v.*/
+      - deploy-production:
+          requires:
+            - hold
+          filters:
+            tags:
+              only: /^v.*/
