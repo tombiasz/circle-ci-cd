@@ -2,11 +2,17 @@ version: 2.1
 
 orbs:
   node: circleci/node@2.1.1
+  aws-ecr: circleci/aws-ecr@6.7.0
 
 executors:
   node-lts:
     docker:
       - image: cimg/node:lts
+
+  ecr:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: false
 
 commands:
   cache-repo:
@@ -15,6 +21,7 @@ commands:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ~/project
+
   restore-repo:
     steps:
       - restore_cache:
@@ -28,6 +35,27 @@ commands:
           command: |
             node --version
             npm --version
+
+  build-and-push-to-ecr:
+    description: "Build docker image and push to ECR"
+    parameters:
+      repo-name:
+        type: string
+        default: "circle-ci-cd-staging"
+      image-tag:
+        type: string
+        default: "$CIRCLE_SHA1"
+    steps:
+      - aws-ecr/build-and-push-image:
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          create-repo: true
+          dockerfile: Dockerfile
+          path: .
+          region: AWS_REGION
+          repo: << parameters.repo-name >>
+          tag: << parameters.image-tag >>
 
 jobs:
   build:
@@ -57,8 +85,22 @@ jobs:
     steps:
       - run: echo deploying
 
+  deploy-staging:
+    executor: ecr
+    steps:
+      - build-and-push-to-ecr:
+          repo-name: "circle-ci-cd-staging"
+          image-tag: "$CIRCLE_SHA1"
+
+  deploy-production:
+    executor: ecr
+    steps:
+      - build-and-push-to-ecr:
+          repo-name: "circle-ci-cd-production"
+          image-tag: "$CIRCLE_TAG"
+
 workflows:
-  build:
+  build-and-deploy:
     jobs:
       - build
       - test-unit:
@@ -67,10 +109,28 @@ workflows:
       - test-integration:
           requires:
             - build
-      - deploy:
+      - deploy-staging:
           requires:
             - test-unit
             - test-integration
           filters:
             branches:
               only: master
+      - await-manual-approval:
+          type: approval
+          requires:
+            - test-unit
+            - test-integration
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - deploy-production:
+          requires:
+            - await-manual-approval
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
