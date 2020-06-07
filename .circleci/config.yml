@@ -116,7 +116,7 @@ workflows:
           filters:
             branches:
               only: master
-      - wait-for-approval:
+      - await-manual-approval:
           type: approval
           requires:
             - test-unit
@@ -126,7 +126,7 @@ workflows:
               only: /^v.*/
       - deploy-production:
           requires:
-            - hold
+            - await-manual-approval
           filters:
             tags:
               only: /^v.*/
