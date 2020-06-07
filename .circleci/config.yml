@@ -103,18 +103,21 @@ workflows:
   build-and-deploy:
     jobs:
       - build:
-          tags:
-            only: /^v.*/
+          filters:
+            tags:
+              only: /^v.*/
       - test-unit:
           requires:
             - build
-          tags:
-            only: /^v.*/
+          filters:
+            tags:
+              only: /^v.*/
       - test-integration:
           requires:
             - build
-          tags:
-            only: /^v.*/
+          filters:
+            tags:
+              only: /^v.*/
       - deploy-staging:
           requires:
             - test-unit
