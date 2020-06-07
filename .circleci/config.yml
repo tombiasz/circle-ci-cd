@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   node: circleci/node@2.1.1
+  aws-ecr: circleci/aws-ecr@6.7.0
 
 executors:
   node-lts:
@@ -74,3 +75,16 @@ workflows:
           filters:
             branches:
               only: master
+      - aws-ecr/build-and-push-image:
+          requires:
+            - test-unit
+            - test-integration
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          create-repo: true
+          dockerfile: Dockerfile
+          path: .
+          region: AWS_REGION
+          repo: circle-ci-cd
+          tag: "$CIRCLE_SHA1"
