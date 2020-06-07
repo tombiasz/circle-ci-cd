@@ -102,18 +102,26 @@ jobs:
 workflows:
   build-and-deploy:
     jobs:
-      - build
+      - build:
+          tags:
+            only: /^v.*/
       - test-unit:
           requires:
             - build
+          tags:
+            only: /^v.*/
       - test-integration:
           requires:
             - build
+          tags:
+            only: /^v.*/
       - deploy-staging:
           requires:
             - test-unit
             - test-integration
           filters:
+            tags:
+              only: /^v.*/
             branches:
               only: master
       - await-manual-approval:
