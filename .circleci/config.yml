@@ -123,8 +123,6 @@ workflows:
             - test-unit
             - test-integration
           filters:
-            tags:
-              only: /^v.*/
             branches:
               only: master
       - await-manual-approval:
