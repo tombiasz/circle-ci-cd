@@ -85,7 +85,7 @@ jobs:
     steps:
       - build-and-push-to-ecr:
           repo-name: "circle-ci-cd-staging"
-          default: "$CIRCLE_SHA1"
+          image-tag: "$CIRCLE_SHA1"
 
 workflows:
   build:
