@@ -83,7 +83,7 @@ jobs:
   deploy-staging:
     executor: node-lts
     steps:
-      - build-and-push-ti-ecr:
+      - build-and-push-to-ecr:
           repo-name: "circle-ci-cd-staging"
           default: "$CIRCLE_SHA1"
 
